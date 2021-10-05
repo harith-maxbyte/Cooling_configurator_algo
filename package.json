@@ -1,0 +1,28 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "nodemon": "^2.0.12",
+    "objects-to-csv": "^1.3.6",
+    "pg": "^8.7.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.6.5"
+  },
+  "devDependencies": {
+    "sequelize-cli": "^6.2.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "make-model": "npx sequelize-cli model:generate --name ceiling_factor --attributes ceiling_value:Numeric,ceil_factor:Numeric",
+    "make-seed": "npx sequelize-cli seed:generate --name demo-ceiling_factor",
+    "seed": "npx sequelize-cli db:seed:all",
+    "migrate": "npx sequelize-cli db:migrate",
+    "down": "npx sequelize-cli db:migrate:undo"
+  },
+  "name": "apidemo",
+  "version": "1.0.0",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}
