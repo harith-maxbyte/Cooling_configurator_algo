@@ -2,7 +2,7 @@ var a1=[];
 var ty=[];
 function start(totnoofcomp,output,RoomPermutations){
 for(var i=0;i<output.length;i++){
-    if(output[i].length==3){ //totnoofcomp      
+    if(output[i].length==totnoofcomp){ //totnoofcomp      
 
         output[i].sort(function(a, b){return b-a});
         a1.push(
@@ -12,6 +12,7 @@ for(var i=0;i<output.length;i++){
          }  
 }
 ty = all()
+
 return ty
 }
 

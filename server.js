@@ -8,8 +8,8 @@ const client=new Client({
     "host": "localhost",
     "port": 5432,
     "user": "postgres",
-    "password": "myPassword",
-    "database": "coolingalgo",    
+    "password": "Harith@kv47",
+    "database": "checkcoolingalgo",    
 })
 
 

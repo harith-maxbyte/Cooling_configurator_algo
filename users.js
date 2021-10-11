@@ -15,20 +15,24 @@ function step1(area,room_temp,ceiling_height){
     
     var basic_cooling_load = 0;
     var room_height_to_ceiling = 0;
-
-
+// console.log(area,room_temp,ceiling_height)
   Object.keys(dbobj).forEach(function (i) {
     if(Number(ceiling_height) === Number(dbobj[i].ceiling_value)){
-       room_height_to_ceiling=dbobj[i].ceil_factor;
+       room_height_to_ceiling=dbobj[i].ceil_factors;
     }
 });
+
 
   Object.keys(db1obj).forEach(function (i) {
     if(Number(room_temp) === Number(db1obj[i].roomtemp)){
       basic_cooling_load = db1obj[i].wsqm;     
     }
 });
+  // console.log(room_temp+" - "+basic_cooling_load)
+  // console.log(ceiling_height+" - "+room_height_to_ceiling)
+  // console.log("-----------------")
    const Cooling_load = basic_cooling_load * room_height_to_ceiling; 
+
  return Cooling_load;
 }
 
@@ -42,7 +46,7 @@ function step2(area,cl){
 }
 
 
-function step3(true_load,cooling_capacity,sum_of_all_true_loads){
+function step3(sum_of_all_true_loads){
    
    var min_load_factor=1;
    var max_load_factor=1.5;
@@ -59,23 +63,20 @@ function step3(true_load,cooling_capacity,sum_of_all_true_loads){
 
    //no.of comp needed                   //sum of all true loads  //25000
    localvar.compressor_needed=Math.round(sum_of_all_true_loads/system_cooling_limit)
-  //  if(sum_of_all_true_loads < system_cooling_limit){
-  //   comp=1;
-  //   localvar.compressor_needed=comp;
-  // }
-  //   else{
-  //  while(sum_of_all_true_loads > system_cooling_limit){
-  //   comp=comp+1;
-  //   sum_of_all_true_loads = sum_of_all_true_loads - system_cooling_limit;
-  //  localvar.compressor_needed=comp;
-  //  }
-  //  }
+
+
+//   while (sum_of_all_true_loads < system_cooling_limit)
+// {
+// comp = comp + 1
+// sum_of_all_true_loads = sum_of_all_true_loads - system_cooling_limit
+// }
+// localvar.compressor_needed = comp
 } 
 
 
 var totrooms1=0;
 const localvar = {};
-
+var user_current_rating=5
 let rooms=[];
 var load_rating_factor = 1.15;
 var sum_of_all_true_loads=0;
@@ -89,8 +90,8 @@ const client=new Client({
     "host": "localhost",
     "port": 5432,
     "user": "postgres",
-    "password": "myPassword",
-    "database": "coolingalgo",    
+    "password": "Harith@kv47",
+    "database": "checkcoolingalgo",    
 })
 
 client.connect();
@@ -137,7 +138,8 @@ client.query(`select * from system4`,(err,result)=>{
     // client.end();
 }
 })
-client.query(`select * from occupancy_pattern`,(err,result)=>{
+
+client.query(`select * from occ_pattern`,(err,result)=>{
     if(!err){
     rocc=result.rows;
     // client.end();
@@ -149,6 +151,7 @@ client.query(`select * from eff_profile`,(err,result)=>{
     // client.end();
 }
 })
+
 module.exports={
  asd(req,res,next){
 
@@ -160,6 +163,7 @@ module.exports={
     res.locals.each_room_cooling_load = each_room_cooling_load;
 });
 
+
   Object.keys(rooms).forEach(function (i) {
   	each_room_load.push(step2(rooms[i].area,each_room_cooling_load[i])); 
   	res.locals.each_room_load = each_room_load;
@@ -170,9 +174,8 @@ Object.keys(each_room_load).forEach(function (i) {
     sum_of_all_true_loads=sum_of_all_true_loads+each_room_load[i];   
 });
 
-  Object.keys(rooms).forEach(function (i) {
-  	step3(each_room_load[i],each_room_cooling_load[i],sum_of_all_true_loads); 	
-});
+  	step3(sum_of_all_true_loads); 	
+
 
 // console.log("totrooms"+totrooms);
   const {min_true_load,max_true_load,compressor_needed} = localvar;
@@ -260,35 +263,9 @@ res.locals.configno=configno
 var output1=[]
 output1=room_perm_for_each_config1
 
-
+// console.log(sys2)
 var a=[],b=[]
-var lisys1=[]
-// var each_room_load1=
-// [
-//      // 1634.61,   
-//   2800,
-//   526.47,
-//   // 870.2049999999998,
-//  2250,
-//  820,
-//  2200,
-//  1000
 
-// ]
-// var outputex=
-// [
-//   // [[5],[6],[4,3,2,1]],
-//   // [[6],[5],[4,3,2,1]],
-//   // [[4],[6],[5,3,2,1]],
-//   // [[6],[4,5],[3,2,1]],
-//   // [[6],[5,4],[3,2,1]]
-//   [ [ 1 ], [ 2 ], [ 3, 4, 5, 6 ] ],
-//   [ [ 1 ], [ 3 ], [ 2, 4, 5, 6 ] ],
-//   [ [ 1 ], [ 4 ], [ 2, 3, 5, 6 ] ],
-//   [ [ 1 ], [ 2, 4 ], [ 3, 5, 6 ] ],
-//   [ [ 1 ], [ 2, 5 ], [ 3, 4, 6 ] ]
-  
-// ]
 var ccc=0;
 var selected_product_list=[]
 var selected_product_list1=[]
@@ -296,25 +273,33 @@ for(var i=0;i<output1.length;i++){
   // console.log(output1[i])   ///final room permutations after removing duplicates
 ccc=0
   for(var j=0;j<output1[i].length;j++){
+    var chk=[]
     a=output1[i]
 
     if(a[j].length==4){
       // console.log(a[j]);
       // console.log(qwe4(a[j]));
       selected_product_list.push(qwe4(a[j])); 
+      
     }
     if(a[j].length==3){
       // console.log(a[j]);
       // console.log(qwe3(a[j]));
-      selected_product_list.push(qwe3(a[j]));}
+      selected_product_list.push(qwe3(a[j]));
+      
+    }
     if(a[j].length==2){
       // console.log(a[j]);
       // console.log(qwe2(a[j]));
-      selected_product_list.push(qwe2(a[j]));}
+      selected_product_list.push(qwe2(a[j]));
+      
+    }
     if(a[j].length==1){
       // console.log(a[j]);
       // console.log(qwe1(a[j]));
-      selected_product_list.push(qwe1(a[j]));}
+      selected_product_list.push(qwe1(a[j]));
+      
+    }
     // for(var k=0;k<a[j].length;k++){
     //   b=a[j]
     //   console.log(b[k])
@@ -324,125 +309,123 @@ ccc=0
 
 }
 // console.log("-----------------")
-// console.log(selected_product_list[476])
+// console.log(selected_product_list)
 function qwe4(arr){
-  var li1=[];var alltrueload=[];var f=[];
+  var li3=[];var alltrueload=[];
   
   for(var i=0;i<arr.length;i++){
     alltrueload.push(each_room_load[arr[i]-1])}
-    alltrueload = alltrueload.sort(function (a, b) {  return b - a;  });
-    // console.log(alltrueload)
-    
-    
-    for(var k=0;k<sys4.length;k++){
-      f.push(sys4[k].val1);
-      f.push(sys4[k].val2);
-      f.push(sys4[k].val3);
-      f.push(sys4[k].val4);
-    f = f.sort(function (a, b) {  return b - a;  });
-    
-    for(var j=0;j<sys4.length;j++){
-      if(alltrueload[j]<=f[k]){
-        if(alltrueload[j]<=f[k+1]){
-          if(alltrueload[j]<=f[k+2]){
-            if(alltrueload[j]<=f[k+3]){
-            li1.push(sys4[j]);
-              // ccc+=sys4[j].cooling__capacity
-            }
-          }
-        }
-      }
-    
-    }
-    f=[]
-    }
-  f=[]
- alltrueload=[]
-  return li1;
+  var cool=0
+  for(var j=0;j<alltrueload.length;j++){
+     cool+=alltrueload[j]
+  }  
+  
+ li3=[]
+ // console.log(cool)
+ // console.log(min_true_load,max_true_load)
+ for(var i=0;i<sys4.length;i++){
+  if(sys4[i].cooling__capacity >= cool){
+    // console.log(sys4[i].cooling__capacity)
+      if(sys4[i].cooling__capacity<=min_true_load && sys4[i].cooling__capacity<=max_true_load ){
+        if(sys4[i].current_rating<=user_current_rating){
+    li3.push(sys4[i]);}
+  }
+  }
+  
+ }
+  return li3;
 }
 function qwe3(arr){
-var li2=[];var alltrueload=[];var f=[];
+var li3=[];var alltrueload=[];
   
   for(var i=0;i<arr.length;i++){
     alltrueload.push(each_room_load[arr[i]-1])}
-    alltrueload = alltrueload.sort(function (a, b) {  return b - a;  });
-    // console.log(alltrueload)
-    
-    
-    for(var k=0;k<sys3.length;k++){
-      f.push(sys3[k].val1);
-      f.push(sys3[k].val2);
-      f.push(sys3[k].val3);
-      
-    f = f.sort(function (a, b) {  return b - a;  });
-    
-    for(var j=0;j<sys3.length;j++){
-      if(alltrueload[j]<=f[k]){
-        if(alltrueload[j]<=f[k+1]){
-          if(alltrueload[j]<=f[k+2]){
-              li2.push(sys3[j]);
-             // ccc+=sys4[j].cooling__capacity 
-          }
-        }
-      }
-    
-    }
-    f=[]
-    }
-  f=[]
- alltrueload=[]
-  return li2;
+  var cool=0
+  for(var j=0;j<alltrueload.length;j++){
+     cool+=alltrueload[j]
+  }  
+  
+ li3=[]
+ // console.log(cool)
+ // console.log(min_true_load,max_true_load)
+ for(var i=0;i<sys3.length;i++){
+  if(sys3[i].cooling__capacity >= cool){
+    // console.log(sys3[i].cooling__capacity)
+      if(sys3[i].cooling__capacity<=min_true_load && sys3[i].cooling__capacity<=max_true_load){
+    if(sys3[i].current_rating<=user_current_rating){
+    li3.push(sys3[i]);}}
+  }
+  
+ }
+  return li3;
 }
+
 function qwe2(arr){
-  var li3=[];var alltrueload=[];var f=[];
+  var li3=[];var alltrueload=[];
   
   for(var i=0;i<arr.length;i++){
     alltrueload.push(each_room_load[arr[i]-1])}
-    alltrueload = alltrueload.sort(function (a, b) {  return b - a;  });
-    // console.log(alltrueload)
-    
-    
-    for(var k=0;k<sys2.length;k++){
-      f.push(sys2[k].val1);
-      f.push(sys2[k].val2);
+  var cool=0
+  for(var j=0;j<alltrueload.length;j++){
+     cool+=alltrueload[j]
+  }  
+  
+ li3=[]
+ // console.log(cool)
+ // console.log(min_true_load,max_true_load)
+ for(var i=0;i<sys2.length;i++){
+
+  if(sys2[i].cooling__capacity >= cool){
+      // console.log(sys2[i].current_rating+" - "+sys2[i].cooling__capacity)    
+      if(sys2[i].cooling__capacity<=min_true_load && sys2[i].cooling__capacity<=max_true_load){
+   
+         
+    if(sys2[i].current_rating<=user_current_rating){
       
-      
-    f = f.sort(function (a, b) {  return b - a;  });
-    
-    for(var j=0;j<sys2.length;j++){
-      if(alltrueload[j]<=f[k]){
-        if(alltrueload[j]<=f[k+1]){
-              li3.push(sys2[j]);
-              // ccc+=sys4[j].cooling__capacity
-        }
-      }    
-    }
-    f=[]
-    }
-  f=[]
- alltrueload=[]
+    li3.push(sys2[i]);
+   }
+}
+  }
+  
+ }
   return li3;
 }
 
 function qwe1(arr){
- lisys1=[]
+  var lisys11=[];var alltrueload=[];
+   for(var i=0;i<arr.length;i++){
+    alltrueload.push(each_room_load[arr[i]-1])}
+  var cool=0
+  for(var j=0;j<alltrueload.length;j++){
+     cool+=alltrueload[j]
+  }  
  
-  for(var i=0;i<arr.length;i++){
-    // console.log(arr[i]+" - "+each_room_load[arr[i]-1]);
-    for(var j=0;j<sys1.length;j++){
-      if(each_room_load[arr[i]-1]<=sys1[j].val1){   
-        lisys1.push(sys1[j]);
-        // ccc+=sys4[j].cooling__capacity  
-      }
-    }
+ lisys11=[]
+// console.log(cool)
+// console.log(min_true_load,max_true_load)
+ for(var i=0;i<sys1.length;i++){
+  // console.log(sys1[i].cooling__capacity)
+  if(sys1[i].cooling__capacity >= cool){
+    if(sys1[i].cooling__capacity<=min_true_load && sys1[i].cooling__capacity<=max_true_load){
+      if(sys1[i].current_rating<=user_current_rating){
+    lisys11.push(sys1[i]);}
   }
-  return lisys1;
+
+  }
+  
+ }
+  return lisys11;
 }
 
 
-// console.log(selected_product_list)
 
-step5.start1(selected_product_list,rooms.length,rocc,each_room_load,efficiency_profile)
+        // console.log(selected_product_list)
+var sum=0
+for(var i=0;i<each_room_load.length;i++){
+  sum+=each_room_load[i]
+}
+
+step5.start1(selected_product_list,rooms.length,rocc,each_room_load,efficiency_profile,sum)
 
 // console.log("-------------Price Wise------------------")
 // for(var i=0;i<selected_product_list.length;i++){

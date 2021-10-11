@@ -1,1 +1,0 @@
-# Cooling_configurator_algo
