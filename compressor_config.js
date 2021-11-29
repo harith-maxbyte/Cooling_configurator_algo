@@ -1,7 +1,7 @@
 var output=[]
 var arr=[]
 const combineElements = (sum) => {
-   
+   output=[]
   const findCombination = (remain, path, start) => {
       if (remain < 0) {
         return;
